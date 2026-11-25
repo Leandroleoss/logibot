@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogiBot — Aprenda Programação Jogando</title>
+  <style>
+    /* ==========================================================================
+       VARIÁVEIS DE TEMA E ESTILOS GLOBAIS
+       ========================================================================== */
+    :root {
+      --bg-app: #0f172a;
+      --bg-panel: #1e293b;
+      --bg-panel-alt: #0b1120;
+      --bg-card: #273549;
+      --border-subtle: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      /* Cores por Categoria de Comando */
+      --cat-move: #3b82f6;
+      --cat-move-dark: #1d4ed8;
+      --cat-action: #10b981;
+      --cat-action-dark: #047857;
+      --cat-loop: #f59e0b;
+      --cat-loop-dark: #b45309;
+      --cat-cond: #8b5cf6;
+      --cat-cond-dark: #6d28d9;
+      --cat-func: #ec4899;
+      --cat-func-dark: #be185d;
+
+      /* Estados e Feedback */
+      --highlight-exec: #facc15;
+      --status-info-bg: rgba(59, 130, 246, 0.15);
+      --status-info-border: #3b82f6;
+      --status-error-bg: rgba(239, 68, 68, 0.18);
+      --status-error-border: #ef4444;
+      --status-success-bg: rgba(16, 185, 129, 0.18);
+      --status-success-border: #10b981;
+
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+      --shadow-panel: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ==========================================================================
+       CABEÇALHO (HEADER)
+       ========================================================================== */
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.85rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #f8fafc, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand span {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: block;
+    }
+
+    /* Navegação das 5 Fases */
+    .level-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      background: var(--bg-panel-alt);
+      padding: 0.3rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .level-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.45rem 0.75rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .level-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .level-btn.active {
+      background: var(--cat-move);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.45);
+    }
+
+    .level-stars-mini {
+      font-size: 0.72rem;
+      color: #facc15;
+    }
+
+    /* Badges de Informação */
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-badge {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .meta-badge strong {
+      color: #60a5fa;
+    }
+
+    .meta-badge.limit-warning {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.16);
+      color: #fca5a5;
+    }
+
+    /* ==========================================================================
+       LAYOUT PRINCIPAL (4 COLUNAS / PAINÉIS ADAPTATIVOS)
+       ========================================================================== */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr 1.1fr 0.9fr;
+      gap: 1rem;
+      padding: 1rem;
+      max-width: 1800px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1380px) {
+      main {
+        grid-template-columns: 1.1fr 0.9fr 1.1fr;
+      }
+      .panel-code-preview {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr 1fr;
+      }
+      .panel-stage {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 720px) {
+      main {
+        grid-template-columns: 1fr;
+        padding: 0.75rem;
+      }
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-panel);
+      min-width: 0;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .panel-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--text-primary);
+    }
+
+    /* ==========================================================================
+       PAINEL 1: CENÁRIO 2D, VARIÁVEIS E DIAGNÓSTICO
+       ========================================================================== */
+    .objective-banner {
+      background: rgba(15, 23, 42, 0.75);
+      border-left: 4px solid #38bdf8;
+      padding: 0.7rem 0.85rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.8rem;
+      font-size: 0.86rem;
+      line-height: 1.42;
+    }
+
+    .objective-banner strong {
+      color: #38bdf8;
+      display: block;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.18rem;
+    }
+
+    /* Barra de Monitoramento de Variáveis (Fase 4) */
+    .var-monitor {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(90deg, rgba(139, 92, 246, 0.18), rgba(59, 130, 246, 0.15));
+      border: 1px solid #8b5cf6;
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.8rem;
+      margin-bottom: 0.8rem;
+      font-size: 0.84rem;
+    }
+
+    .var-monitor.visible {
+      display: flex;
+    }
+
+    .var-pill {
+      background: #0f172a;
+      border: 1px solid #a78bfa;
+      padding: 0.2rem 0.65rem;
+      border-radius: 6px;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-weight: 700;
+      color: #e9d5ff;
+    }
+
+    .grid-wrapper {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-panel-alt);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      padding: 0.85rem;
+      min-height: 270px;
+      position: relative;
+      overflow: auto;
+    }
+
+    .warehouse-grid {
+      display: grid;
+      gap: 4px;
+      background: #0f172a;
+      padding: 8px;
+      border-radius: 10px;
+      border: 2px solid #334155;
+      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.65);
+    }
+
+    .cell {
+      width: 48px;
+      height: 48px;
+      border-radius: 6px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+      user-select: none;
+    }
+
+    @media (max-width: 520px) {
+      .cell {
+        width: 36px;
+        height: 36px;
+      }
+    }
+
+    .cell-floor {
+      background: #1e293b;
+      border: 1px solid #2d3d54;
+      background-image: radial-gradient(#334155 1px, transparent 1px);
+      background-size: 10px 10px;
+    }
+
+    .cell-wall {
+      background: linear-gradient(145deg, #334155, #1e293b);
+      border: 1px solid #475569;
+    }
+
+    .cell-wall::after {
+      content: '';
+      width: 62%;
+      height: 62%;
+      border: 2px dashed rgba(148, 163, 184, 0.22);
+      border-radius: 4px;
+    }
+
+    .cell-void {
+      background: transparent;
+      border: none;
+    }
+
+    /* Destaque Visual do Sensor (Pulso Roxo) */
+    .cell-sensor-scan {
+      outline: 3px solid #c084fc !important;
+      box-shadow: 0 0 18px rgba(192, 132, 252, 0.85), inset 0 0 12px rgba(192, 132, 252, 0.5) !important;
+      animation: sensorPulse 0.55s ease-in-out infinite alternate;
+      z-index: 3;
+    }
+
+    @keyframes sensorPulse {
+      from { transform: scale(0.97); }
+      to { transform: scale(1.04); }
+    }
+
+    .cell-hole {
+      background: #020617;
+      border: 2px dashed #ef4444;
+      box-shadow: inset 0 0 12px rgba(239, 68, 68, 0.5);
+    }
+
+    .cell-hole::before {
+      content: '⚠️';
+      font-size: 0.95rem;
+      opacity: 0.75;
+    }
+
+    .cell-goal {
+      background: rgba(16, 185, 129, 0.2);
+      border: 2px solid #10b981;
+      box-shadow: inset 0 0 12px rgba(16, 185, 129, 0.35);
+    }
+
+    .cell-goal-label {
+      position: absolute;
+      bottom: 2px;
+      font-size: 0.58rem;
+      font-weight: 800;
+      color: #34d399;
+      text-transform: uppercase;
+    }
+
+    .cell-button {
+      background: rgba(245, 158, 11, 0.15);
+      border: 2px solid #f59e0b;
+    }
+
+    .power-button-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fbbf24, #d97706);
+      border: 2px solid #fef3c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      transition: all 0.25s ease;
+    }
+
+    .power-button-icon.pressed {
+      background: radial-gradient(circle at 30% 30%, #34d399, #059669);
+      box-shadow: 0 0 14px #10b981;
+      transform: scale(0.92);
+    }
+
+    /* Portão Laser (Fase 4) */
+    .cell-gate-locked {
+      background: rgba(239, 68, 68, 0.22);
+      border: 2px solid #ef4444;
+      box-shadow: inset 0 0 12px rgba(239, 68, 68, 0.45);
+    }
+
+    .cell-gate-open {
+      background: rgba(16, 185, 129, 0.12);
+      border: 2px dashed #34d399;
+    }
+
+    .gate-icon {
+      font-size: 1.15rem;
+      z-index: 2;
+    }
+
+    .crate-item {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, #d97706, #92400e);
+      border: 2px solid #fbbf24;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.45);
+      z-index: 2;
+    }
+
+    /* Sprite do Robô LogiBot */
+    .robot-entity {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      border: 2px solid #ffffff;
+      border-radius: 10px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.65);
+      transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @media (max-width: 520px) {
+      .robot-entity {
+        width: 28px;
+        height: 28px;
+      }
+    }
+
+    .robot-visor {
+      width: 20px;
+      height: 9px;
+      background: #0f172a;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 3px;
+    }
+
+    .robot-eye {
+      width: 4px;
+      height: 4px;
+      background: #38bdf8;
+      border-radius: 50%;
+      box-shadow: 0 0 4px #38bdf8;
+    }
+
+    .robot-direction-arrow {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 8px solid #facc15;
+    }
+
+    .robot-carried-crate {
+      position: absolute;
+      bottom: -5px;
+      right: -5px;
+      width: 17px;
+      height: 17px;
+      background: #f59e0b;
+      border: 1.5px solid #fff;
+      border-radius: 4px;
+      font-size: 0.62rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .robot-crash {
+      animation: shakeCrash 0.45s ease;
+      background: linear-gradient(135deg, #ef4444, #991b1b);
+    }
+
+    @keyframes shakeCrash {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px) rotate(-8deg); }
+      40% { transform: translateX(6px) rotate(8deg); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .grid-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 0.65rem;
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      justify-content: center;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .legend-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    /* Diagnóstico Didático */
+    .diagnostic-box {
+      margin-top: 0.85rem;
+      padding: 0.8rem 0.9rem;
+      border-radius: var(--radius-md);
+      background: var(--status-info-bg);
+      border: 1px solid var(--status-info-border);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      transition: all 0.25s ease;
+    }
+
+    .diagnostic-box.error {
+      background: var(--status-error-bg);
+      border-color: var(--status-error-border);
+    }
+
+    .diagnostic-box.success {
+      background: var(--status-success-bg);
+      border-color: var(--status-success-border);
+    }
+
+    .diagnostic-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .diagnostic-content h4 {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.18rem;
+      color: var(--text-primary);
+    }
+
+    .diagnostic-content p {
+      font-size: 0.84rem;
+      color: #e2e8f0;
+      line-height: 1.38;
+    }
+
+    /* ==========================================================================
+       PAINEL 2: PALETA DE COMANDOS
+       ========================================================================== */
+    .scope-indicator {
+      background: rgba(250, 204, 21, 0.12);
+      border: 1px dashed #facc15;
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.7rem;
+      margin-bottom: 0.8rem;
+      font-size: 0.78rem;
+      color: #fef08a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.45rem;
+    }
+
+    .scope-reset-btn {
+      background: rgba(250, 204, 21, 0.22);
+      border: 1px solid #facc15;
+      color: #fef08a;
+      border-radius: 4px;
+      padding: 0.18rem 0.45rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .palette-group {
+      margin-bottom: 0.85rem;
+    }
+
+    .palette-group-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      font-weight: 700;
+    }
+
+    .palette-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+    }
+
+    .cmd-btn {
+      width: 100%;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0.62rem 0.8rem;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.84rem;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      transition: transform 0.12s ease, filter 0.15s ease;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    .cmd-btn:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .cmd-btn:active:not(:disabled) {
+      transform: translateY(1px);
+    }
+
+    .cmd-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .cmd-btn-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .cmd-btn .plus-tag {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .bg-move { background: linear-gradient(135deg, var(--cat-move), var(--cat-move-dark)); }
+    .bg-action { background: linear-gradient(135deg, var(--cat-action), var(--cat-action-dark)); }
+    .bg-loop { background: linear-gradient(135deg, var(--cat-loop), var(--cat-loop-dark)); }
+    .bg-cond { background: linear-gradient(135deg, var(--cat-cond), var(--cat-cond-dark)); }
+    .bg-func { background: linear-gradient(135deg, var(--cat-func), var(--cat-func-dark)); }
+
+    .concept-tip-card {
+      margin-top: auto;
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .concept-tip-card strong {
+      color: #fbbf24;
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    /* ==========================================================================
+       PAINEL 3: WORKSPACE DE BLOCOS E CONTROLES DE DEPURAÇÃO
+       ========================================================================== */
+    .exec-controls {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 0.9fr;
+      gap: 0.45rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .btn-play {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0.62rem 0.75rem;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+      transition: all 0.15s ease;
+    }
+
+    .btn-play.paused-state {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+    }
+
+    .btn-play:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    .btn-step {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0.62rem 0.65rem;
+      font-weight: 700;
+      font-size: 0.83rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-step:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+
+    .btn-reset {
+      background: #334155;
+      color: #f8fafc;
+      border: 1px solid #475569;
+      border-radius: var(--radius-md);
+      padding: 0.62rem 0.65rem;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+    }
+
+    .btn-reset:hover {
+      background: #475569;
+    }
+
+    .speed-toggle {
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      padding: 0.32rem 0.6rem;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .speed-toggle.fast {
+      border-color: #f59e0b;
+      color: #fbbf24;
+    }
+
+    /* Abas do Workspace (Programa Principal vs Minha_Rotina na Fase 5) */
+    .workspace-tabs {
+      display: none;
+      gap: 0.4rem;
+      margin-bottom: 0.65rem;
+      background: var(--bg-panel-alt);
+      padding: 0.3rem;
+      border-radius: 9px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .workspace-tabs.visible {
+      display: flex;
+    }
+
+    .ws-tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .ws-tab-btn.active {
+      background: #334155;
+      color: #fff;
+    }
+
+    .ws-tab-btn.active-func {
+      background: var(--cat-func);
+      color: #fff;
+    }
+
+    .workspace-area {
+      flex: 1;
+      background: var(--bg-panel-alt);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.7rem;
+      min-height: 270px;
+      max-height: 460px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+    }
+
+    .empty-workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--text-muted);
+      padding: 1.25rem;
+      border: 2px dashed #1e293b;
+      border-radius: var(--radius-md);
+      font-size: 0.84rem;
+      gap: 0.45rem;
+    }
+
+    /* Blocos Visuais no Workspace */
+    .code-block {
+      border-radius: 8px;
+      padding: 0.5rem 0.65rem;
+      color: #fff;
+      font-size: 0.83rem;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      position: relative;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, outline 0.15s ease;
+    }
+
+    .code-block.executing {
+      outline: 3px solid var(--highlight-exec);
+      box-shadow: 0 0 18px rgba(250, 204, 21, 0.8);
+      transform: scale(1.015);
+      z-index: 4;
+    }
+
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+    }
+
+    .code-block-label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    .line-number {
+      font-family: monospace;
+      font-size: 0.72rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.1rem 0.38rem;
+      border-radius: 4px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .repeat-select {
+      background: rgba(0, 0, 0, 0.35);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 5px;
+      padding: 0.12rem 0.32rem;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .repeat-select option {
+      background: #1e293b;
+      color: #fff;
+    }
+
+    .block-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.22rem;
+    }
+
+    .icon-btn {
+      background: rgba(0, 0, 0, 0.28);
+      border: none;
+      color: #fff;
+      width: 23px;
+      height: 23px;
+      border-radius: 5px;
+      font-size: 0.74rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+
+    .icon-btn:hover:not(:disabled) {
+      background: rgba(0, 0, 0, 0.55);
+    }
+
+    .icon-btn.delete:hover:not(:disabled) {
+      background: #ef4444;
+    }
+
+    .icon-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    /* Container Interno (Repetir / Se) */
+    .nested-container {
+      margin-left: 0.7rem;
+      padding: 0.45rem;
+      background: rgba(15, 23, 42, 0.48);
+      border-left: 3px solid rgba(255, 255, 255, 0.45);
+      border-radius: 0 6px 6px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.38rem;
+    }
+
+    .nested-target-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px dashed rgba(255, 255, 255, 0.45);
+      color: #fff;
+      padding: 0.32rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .nested-target-btn.selected-scope {
+      background: rgba(250, 204, 21, 0.25);
+      border-color: #facc15;
+      color: #fef08a;
+    }
+
+    .root-scope-btn {
+      margin-top: 0.3rem;
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px dashed #3b82f6;
+      color: #93c5fd;
+      padding: 0.4rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .root-scope-btn.selected-scope {
+      background: rgba(250, 204, 21, 0.16);
+      border-color: #facc15;
+      color: #fef08a;
+    }
+
+    .workspace-footer {
+      margin-top: 0.6rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn-clear-all {
+      background: transparent;
+      border: 1px solid #475569;
+      color: var(--text-secondary);
+      padding: 0.32rem 0.65rem;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      cursor: pointer;
+    }
+
+    .btn-clear-all:hover:not(:disabled) {
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+
+    /* ==========================================================================
+       PAINEL 4: TRADUTOR EM TEMPO REAL (ESTILO PYTHON)
+       ========================================================================== */
+    .code-editor-box {
+      flex: 1;
+      background: #090d16;
+      border: 1px solid #1e293b;
+      border-radius: var(--radius-md);
+      padding: 0.75rem 0;
+      font-family: 'Consolas', 'Fira Code', 'Courier New', monospace;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      overflow-y: auto;
+      min-height: 270px;
+    }
+
+    .code-line {
+      display: flex;
+      align-items: baseline;
+      padding: 0.12rem 0.85rem;
+      border-left: 3px solid transparent;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+      white-space: pre;
+    }
+
+    .code-line.active-line {
+      background: rgba(250, 204, 21, 0.18);
+      border-left-color: #facc15;
+    }
+
+    .code-ln {
+      width: 26px;
+      color: #475569;
+      user-select: none;
+      font-size: 0.74rem;
+    }
+
+    .tok-kw { color: #c084fc; font-weight: 700; }
+    .tok-fn { color: #60a5fa; }
+    .tok-num { color: #fbbf24; }
+    .tok-var { color: #f472b6; }
+    .tok-op { color: #38bdf8; }
+    .tok-com { color: #64748b; font-style: italic; }
+
+    .code-bridge-note {
+      margin-top: 0.75rem;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.75rem;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* ==========================================================================
+       MODAL DE VITÓRIA E ESTRELAS
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.84);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 100;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-panel);
+      border: 2px solid #10b981;
+      border-radius: 18px;
+      max-width: 490px;
+      width: 100%;
+      padding: 1.75rem;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+      animation: popUp 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popUp {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .stars-display {
+      font-size: 2.5rem;
+      letter-spacing: 0.25rem;
+      margin-bottom: 0.35rem;
+      filter: drop-shadow(0 4px 10px rgba(250, 204, 21, 0.45));
+    }
+
+    .efficiency-badge {
+      display: inline-block;
+      background: rgba(250, 204, 21, 0.14);
+      border: 1px solid rgba(250, 204, 21, 0.45);
+      color: #fef08a;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.28rem 0.75rem;
+      border-radius: 999px;
+      margin-bottom: 0.85rem;
+    }
+
+    .modal-card h2 {
+      font-size: 1.45rem;
+      color: #34d399;
+      margin-bottom: 0.45rem;
+    }
+
+    .modal-card p {
+      color: #cbd5e1;
+      font-size: 0.92rem;
+      line-height: 1.48;
+      margin-bottom: 1rem;
+    }
+
+    .concept-recap {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 10px;
+      padding: 0.8rem;
+      text-align: left;
+      margin-bottom: 1.25rem;
+      font-size: 0.84rem;
+      color: #ecfdf5;
+    }
+
+    .concept-recap strong {
+      color: #34d399;
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .btn-next-level {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      padding: 0.72rem 1.35rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-stay {
+      background: #334155;
+      color: #f8fafc;
+      border: none;
+      padding: 0.72rem 1.05rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================================================
+       CABEÇALHO E NAVEGAÇÃO ENTRE AS 5 FASES
+       ======================================================================== -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo" aria-hidden="true">🤖</div>
+      <div>
+        <h1>LogiBot</h1>
+        <span>Lógica de Programação Visual + Código</span>
+      </div>
+    </div>
+
+    <nav class="level-selector" aria-label="Seleção de Fases">
+      <button class="level-btn active" data-level="1" onclick="selectLevel(1)">
+        Fase 1: Sequência <span class="level-stars-mini" id="navStars1"></span>
+      </button>
+      <button class="level-btn" data-level="2" onclick="selectLevel(2)">
+        Fase 2: Repetição <span class="level-stars-mini" id="navStars2"></span>
+      </button>
+      <button class="level-btn" data-level="3" onclick="selectLevel(3)">
+        Fase 3: Condicional <span class="level-stars-mini" id="navStars3"></span>
+      </button>
+      <button class="level-btn" data-level="4" onclick="selectLevel(4)">
+        Fase 4: Variáveis <span class="level-stars-mini" id="navStars4"></span>
+      </button>
+      <button class="level-btn" data-level="5" onclick="selectLevel(5)">
+        Fase 5: Funções <span class="level-stars-mini" id="navStars5"></span>
+      </button>
+    </nav>
+
+    <div class="header-meta">
+      <div class="meta-badge">
+        💡 Conceito: <strong id="conceptName">Sequência</strong>
+      </div>
+      <div class="meta-badge" id="blockCounterBadge">
+        🧩 Blocos: <strong id="blockCountText">0</strong>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       ÁREA PRINCIPAL EM 4 PAINÉIS
+       ======================================================================== -->
+  <main>
+    <!-- PAINEL 1: TABULEIRO 2D DO GALPÃO -->
+    <section class="panel panel-stage" aria-label="Cenário do Galpão">
+      <div class="panel-header">
+        <h2 class="panel-title" id="levelTitle">Fase 1: O Primeiro Passo</h2>
+        <span style="font-size: 0.76rem; color: var(--text-secondary);" id="robotOrientationLabel">Direção: Leste (Direita)</span>
+      </div>
+
+      <div class="objective-banner">
+        <strong>🎯 Missão da Fase</strong>
+        <span id="levelObjective">Carregando missão...</span>
+      </div>
+
+      <!-- Monitor de Variável (Ativo na Fase 4) -->
+      <div class="var-monitor" id="varMonitor">
+        <span>📊 Memória do Robô (Variável):</span>
+        <span class="var-pill" id="varCaixasDisplay">caixas = 0 / 2</span>
+      </div>
+
+      <div class="grid-wrapper">
+        <div class="warehouse-grid" id="warehouseGrid" role="grid" aria-label="Mapa do Galpão"></div>
+      </div>
+
+      <div class="grid-legend" id="gridLegend"></div>
+
+      <div class="diagnostic-box" id="diagnosticBox" role="status" aria-live="polite">
+        <div class="diagnostic-icon" id="diagnosticIcon">🤖</div>
+        <div class="diagnostic-content">
+          <h4 id="diagnosticTitle">Pronto para iniciar</h4>
+          <p id="diagnosticMessage">Monte seu algoritmo ao lado e clique em Executar ou Passo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAINEL 2: PALETA DE BLOCOS -->
+    <section class="panel" aria-label="Paleta de Comandos">
+      <div class="panel-header">
+        <h2 class="panel-title">🧱 Comandos Disponíveis</h2>
+      </div>
+
+      <div class="scope-indicator" id="scopeIndicator">
+        <span>Inserindo em: <strong id="activeScopeName">Programa Principal</strong></span>
+        <button class="scope-reset-btn" id="resetScopeBtn" style="display: none;" onclick="setActiveScope(null)">Sair do Bloco</button>
+      </div>
+
+      <div id="paletteContainer"></div>
+
+      <div class="concept-tip-card">
+        <strong>💡 Dica de Programador</strong>
+        <span id="conceptTipText">O robô executa um bloco por vez, de cima para baixo.</span>
+      </div>
+    </section>
+
+    <!-- PAINEL 3: ÁREA DE MONTAGEM E CONTROLES DE EXECUÇÃO -->
+    <section class="panel" aria-label="Seu Algoritmo">
+      <div class="panel-header">
+        <h2 class="panel-title">📜 Seu Algoritmo</h2>
+        <button class="speed-toggle" id="speedToggleBtn" onclick="toggleSpeed()" title="Alternar velocidade">
+          ⚡ Vel: <span id="speedLabel">1x</span>
+        </button>
+      </div>
+
+      <div class="exec-controls">
+        <button class="btn-play" id="playPauseBtn" onclick="togglePlayPause()">
+          ▶ Executar
+        </button>
+        <button class="btn-step" id="stepBtn" onclick="stepExecution()" title="Executar 1 instrução por vez">
+          ⏭ Passo
+        </button>
+        <button class="btn-reset" id="resetBtn" onclick="stopAndReset()">
+          ↺ Resetar
+        </button>
+      </div>
+
+      <!-- Abas para Fase 5 (Programa Principal vs Definir Minha_Rotina) -->
+      <div class="workspace-tabs" id="workspaceTabs">
+        <button class="ws-tab-btn active" id="tabMainBtn" onclick="switchWorkspaceTab('main')">
+          ▶ Programa Principal
+        </button>
+        <button class="ws-tab-btn" id="tabFuncBtn" onclick="switchWorkspaceTab('func')">
+          🧩 Definir Minha_Rotina()
+        </button>
+      </div>
+
+      <div class="workspace-area" id="workspaceArea"></div>
+
+      <div class="workspace-footer">
+        <span style="font-size: 0.74rem; color: var(--text-secondary);">Use ▲ ▼ para reordenar blocos</span>
+        <button class="btn-clear-all" id="clearAllBtn" onclick="clearCurrentTabAlgorithm()">🗑️ Limpar Aba</button>
+      </div>
+    </section>
+
+    <!-- PAINEL 4: TRADUTOR AO VIVO PARA CÓDIGO (ESTILO PYTHON) -->
+    <section class="panel panel-code-preview" aria-label="Tradução em Código">
+      <div class="panel-header">
+        <h2 class="panel-title">💻 Código (Estilo Python)</h2>
+        <span style="font-size: 0.72rem; color: #38bdf8; font-weight: 600;">Tempo Real</span>
+      </div>
+
+      <div class="code-editor-box" id="pythonCodeView" aria-live="off"></div>
+
+      <div class="code-bridge-note">
+        <strong>🌉 Ponte para o Código Real:</strong> Observe como cada bloco visual corresponde a uma linha de código indentada. A linha amarela acompanha exatamente o que o robô está fazendo agora.
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================================================
+       MODAL DE CONCLUSÃO COM ESTRELAS
+       ======================================================================== -->
+  <div class="modal-overlay" id="victoryModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="stars-display" id="modalStars">⭐⭐⭐</div>
+      <div class="efficiency-badge" id="modalEfficiencyText">Eficiência Máxima!</div>
+      <h2 id="modalTitle">Fase Concluída!</h2>
+      <p id="modalSummary">Parabéns! O LogiBot cumpriu a missão com sucesso.</p>
+      <div class="concept-recap">
+        <strong id="modalConceptTitle">O que você aprendeu:</strong>
+        <span id="modalConceptDesc"></span>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-stay" onclick="closeModal()">Revisar Código</button>
+        <button class="btn-next-level" id="nextLevelBtn" onclick="goToNextLevel()">Próxima Fase ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MOTOR DO JOGO (JAVASCRIPT PURO)
+       ======================================================================== -->
+  <script>
+    /**
+     * DIREÇÕES DO ROBÔ
+     * 0: Norte (Cima), 1: Leste (Direita), 2: Sul (Baixo), 3: Oeste (Esquerda)
+     */
+    const DIRECTIONS = [
+      { name: 'Norte (Cima)', dx: 0, dy: -1, deg: 0 },
+      { name: 'Leste (Direita)', dx: 1, dy: 0, deg: 90 },
+      { name: 'Sul (Baixo)', dx: 0, dy: 1, deg: 180 },
+      { name: 'Oeste (Esquerda)', dx: -1, dy: 0, deg: 270 }
+    ];
+
+    /**
+     * DEFINIÇÃO DOS BLOCOS DE COMANDO
+     */
+    const COMMAND_DEFS = {
+      MOVE_FORWARD: {
+        id: 'MOVE_FORWARD',
+        label: 'Andar para frente',
+        py: 'andar_frente()',
+        icon: '⬆️',
+        category: 'move',
+        isContainer: false
+      },
+      TURN_RIGHT: {
+        id: 'TURN_RIGHT',
+        label: 'Virar à direita',
+        py: 'virar_direita()',
+        icon: '↪️',
+        category: 'move',
+        isContainer: false
+      },
+      TURN_LEFT: {
+        id: 'TURN_LEFT',
+        label: 'Virar à esquerda',
+        py: 'virar_esquerda()',
+        icon: '↩️',
+        category: 'move',
+        isContainer: false
+      },
+      JUMP: {
+        id: 'JUMP',
+        label: 'Pular (salta buraco)',
+        py: 'pular_buraco()',
+        icon: '🦘',
+        category: 'move',
+        isContainer: false
+      },
+      PICK_BOX: {
+        id: 'PICK_BOX',
+        label: 'Pegar caixa',
+        py: 'pegar_caixa()',
+        icon: '📦',
+        category: 'action',
+        isContainer: false
+      },
+      DROP_BOX: {
+        id: 'DROP_BOX',
+        label: 'Soltar caixa',
+        py: 'soltar_caixa()',
+        icon: '📥',
+        category: 'action',
+        isContainer: false
+      },
+      PRESS_BUTTON: {
+        id: 'PRESS_BUTTON',
+        label: 'Pressionar botão',
+        py: 'pressionar_botao()',
+        icon: '🔘',
+        category: 'action',
+        isContainer: false
+      },
+      OPEN_GATE: {
+        id: 'OPEN_GATE',
+        label: 'Abrir portão',
+        py: 'abrir_portao()',
+        icon: '🔓',
+        category: 'action',
+        isContainer: false
+      },
+      REPEAT: {
+        id: 'REPEAT',
+        label: 'Repetir',
+        py: 'for _ in range({count}):',
+        icon: '🔁',
+        category: 'loop',
+        isContainer: true,
+        defaultCount: 4
+      },
+      IF_HOLE: {
+        id: 'IF_HOLE',
+        label: 'Se houver buraco à frente ➔ Então',
+        py: 'if buraco_a_frente():',
+        icon: '❓',
+        category: 'cond',
+        isContainer: true
+      },
+      IF_BOXES_2: {
+        id: 'IF_BOXES_2',
+        label: 'Se caixas == 2 ➔ Então',
+        py: 'if caixas == 2:',
+        icon: '🧮',
+        category: 'cond',
+        isContainer: true
+      },
+      CALL_ROUTINE: {
+        id: 'CALL_ROUTINE',
+        label: 'Executar Minha_Rotina()',
+        py: 'minha_rotina()',
+        icon: '⚡',
+        category: 'func',
+        isContainer: false
+      }
+    };
+
+    /**
+     * CONFIGURAÇÃO DAS 5 FASES PROGRESSIVAS
+     * '#' = Parede | '.' = Piso | 'G' = Meta Verde | 'B' = Botão | 'D' = Portão Laser | ' ' = Vazio
+     */
+    const LEVELS = {
+      1: {
+        id: 1,
+        title: 'Fase 1: O Primeiro Passo',
+        concept: 'Sequência',
+        objective: 'Ande até a caixa, pegue-a, contorne o corredor em "L" virando à direita e solte a caixa na zona verde (Meta).',
+        tip: 'Atenção: "Virar à direita" gira o robô no mesmo quadrado. Depois de virar, use "Andar para frente".',
+        lessonTitle: 'Conceito: Sequência Lógica',
+        lessonDesc: 'Computadores executam cada instrução exatamente na ordem definida, uma após a outra.',
+        maxBlocks: null,
+        idealBlocks: 9,
+        availableCommands: ['MOVE_FORWARD', 'TURN_RIGHT', 'TURN_LEFT', 'PICK_BOX', 'DROP_BOX'],
+        map: [
+          '#######',
+          '#.....#',
+          '####..#',
+          '####..#',
+          '####.G#',
+          '#######'
+        ],
+        start: { x: 1, y: 1, dir: 1 },
+        initialCrates: [{ x: 2, y: 1 }],
+        dynamicHoles: false,
+        useVariables: false,
+        useFunctions: false,
+        checkVictory: (state) => !state.carryingCrate && state.crates.some(c => c.x === 5 && c.y === 4)
+      },
+      2: {
+        id: 2,
+        title: 'Fase 2: A Esteira Infinita',
+        concept: 'Laços de Repetição (Loops)',
+        objective: 'Atravesse os 8 quadrados até o botão de energia e pressione-o. Limite máximo: 4 blocos!',
+        tip: 'Coloque "Andar para frente" DENTRO do bloco Repetir (8x) e deixe "Pressionar botão" FORA, logo abaixo do laço.',
+        lessonTitle: 'Conceito: Laços de Repetição (Loops)',
+        lessonDesc: 'Laços evitam repetição manual de código, executando um bloco interno várias vezes automaticamente.',
+        maxBlocks: 4,
+        idealBlocks: 3,
+        availableCommands: ['MOVE_FORWARD', 'TURN_RIGHT', 'TURN_LEFT', 'REPEAT', 'PRESS_BUTTON'],
+        map: [
+          '###########',
+          '#........B#',
+          '###########'
+        ],
+        start: { x: 1, y: 1, dir: 1 },
+        initialCrates: [],
+        dynamicHoles: false,
+        useVariables: false,
+        useFunctions: false,
+        checkVictory: (state) => state.buttonPressed === true
+      },
+      3: {
+        id: 3,
+        title: 'Fase 3: O Caminho Instável',
+        concept: 'Condicionais (Se... Então)',
+        objective: 'Atravesse a ponte até a meta verde (6 casas à frente). A cada execução, buracos aparecem em posições aleatórias!',
+        tip: 'Use "Repetir" e, dentro dele, coloque "Se houver buraco à frente ➔ Pular (salta buraco)". Observe o sensor roxo inspecionar a casa à frente!',
+        lessonTitle: 'Conceito: Condicionais (Se... Então)',
+        lessonDesc: 'Sensores e condicionais permitem que o programa tome decisões sozinho quando o ambiente muda.',
+        maxBlocks: null,
+        idealBlocks: 4,
+        availableCommands: ['MOVE_FORWARD', 'JUMP', 'REPEAT', 'IF_HOLE'],
+        map: [
+          '#########',
+          '#......G#',
+          '#########'
+        ],
+        start: { x: 1, y: 1, dir: 1 },
+        initialCrates: [],
+        dynamicHoles: true,
+        useVariables: false,
+        useFunctions: false,
+        checkVictory: (state) => state.robot.x === 7 && state.robot.y === 1
+      },
+      4: {
+        id: 4,
+        title: 'Fase 4: O Cofre de Carga',
+        concept: 'Variáveis e Contadores',
+        objective: 'Colete as 2 caixas no corredor para incrementar a variável "caixas" até 2. Diante do portão laser, verifique "Se caixas == 2" para abri-lo e chegar à Meta!',
+        tip: 'Cada "Pegar caixa" soma +1 na variável caixas. Quando chegar em frente ao portão (ou após pegar a 2ª caixa), use "Se caixas == 2 ➔ Abrir portão".',
+        lessonTitle: 'Conceito: Variáveis e Estado',
+        lessonDesc: 'Variáveis guardam informações na memória (como uma contagem) para serem testadas mais tarde em decisões.',
+        maxBlocks: null,
+        idealBlocks: 8,
+        availableCommands: ['MOVE_FORWARD', 'PICK_BOX', 'REPEAT', 'IF_BOXES_2', 'OPEN_GATE'],
+        map: [
+          '#########',
+          '#.....DG#',
+          '#########'
+        ],
+        start: { x: 1, y: 1, dir: 1 },
+        initialCrates: [{ x: 2, y: 1 }, { x: 4, y: 1 }],
+        dynamicHoles: false,
+        useVariables: true,
+        useFunctions: false,
+        checkVictory: (state) => state.robot.x === 7 && state.robot.y === 1
+      },
+      5: {
+        id: 5,
+        title: 'Fase 5: A Linha de Montagem',
+        concept: 'Funções / Rotinas Reutilizáveis',
+        objective: 'O corredor tem 3 degraus idênticos em escada! Abra a aba "Definir Minha_Rotina()" para ensinar 1 degrau e chame "Executar Minha_Rotina()" 3 vezes no Programa Principal.',
+        tip: 'Um degrau completo sobe 1 casa (Norte) e avança 1 casa (Leste), terminando virado para o Norte novamente! Monte esse padrão na aba "Definir Minha_Rotina()".',
+        lessonTitle: 'Conceito: Funções e Reutilização',
+        lessonDesc: 'Funções agrupam uma sequência útil sob um único nome para ser reutilizada várias vezes sem duplicar código.',
+        maxBlocks: null,
+        idealBlocks: 7,
+        availableCommands: ['MOVE_FORWARD', 'TURN_RIGHT', 'TURN_LEFT', 'REPEAT', 'CALL_ROUTINE'],
+        map: [
+          '#######',
+          '#   .G#',
+          '#  .. #',
+          '# ..  #',
+          '#..   #',
+          '#######'
+        ],
+        start: { x: 1, y: 4, dir: 0 }, // Começa em (1,4) olhando para Norte (Cima). 3 degraus (Cima+Direita) levam a (4,1) e +1 Direita chega em (5,1) G!
+        initialCrates: [],
+        dynamicHoles: false,
+        useVariables: false,
+        useFunctions: true,
+        checkVictory: (state) => state.robot.x === 5 && state.robot.y === 1
+      }
+    };
+
+    /**
+     * ESTADO GLOBAL DA APLICAÇÃO
+     */
+    let currentLevelId = 1;
+    let levelStars = {}; // { 1: 3, 2: 2, ... }
+    let mainProgram = [];
+    let routineProgram = [];
+    let activeWorkspaceTab = 'main'; // 'main' | 'func'
+    let activeScopeUid = null;
+    let activeBlockUid = null;
+    let inspectedTile = null; // { x, y } destacado pelo sensor
+    let uidCounter = 1;
+
+    // Controle de Execução (Play / Pause / Step)
+    let execStatus = 'idle'; // 'idle' | 'running' | 'paused'
+    let fastMode = false;
+    let abortController = null;
+    let pauseResolver = null;
+    let stepOnceRequested = false;
+
+    // Estado da Simulação
+    let simState = {
+      robot: { x: 1, y: 1, dir: 1, visualAngle: 90 },
+      crates: [],
+      carryingCrate: false,
+      boxesCollected: 0,
+      gateOpen: false,
+      holes: [],
+      buttonPressed: false,
+      crashed: false
+    };
+
+    /* ========================================================================
+       INICIALIZAÇÃO E NAVEGAÇÃO DE FASES
+       ======================================================================== */
+    function init() {
+      selectLevel(1);
+    }
+
+    function selectLevel(levelId) {
+      stopExecution();
+      currentLevelId = levelId;
+      mainProgram = [];
+      routineProgram = [];
+      activeWorkspaceTab = 'main';
+      activeScopeUid = null;
+      activeBlockUid = null;
+      inspectedTile = null;
+
+      document.querySelectorAll('.level-btn').forEach(btn => {
+        const id = Number(btn.dataset.level);
+        btn.classList.toggle('active', id === levelId);
+      });
+
+      const level = LEVELS[levelId];
+      document.getElementById('levelTitle').textContent = level.title;
+      document.getElementById('conceptName').textContent = level.concept;
+      document.getElementById('levelObjective').textContent = level.objective;
+      document.getElementById('conceptTipText').textContent = level.tip;
+
+      // Monitor de variáveis (Fase 4)
+      const varMonitor = document.getElementById('varMonitor');
+      varMonitor.classList.toggle('visible', level.useVariables);
+
+      // Abas de Função (Fase 5)
+      const wsTabs = document.getElementById('workspaceTabs');
+      wsTabs.classList.toggle('visible', level.useFunctions);
+      updateWorkspaceTabButtons();
+
+      resetSimulationState(true);
+      renderPalette();
+      renderWorkspace();
+      renderPythonCode();
+      updateBlockCounter();
+      setDiagnostic('info', 'Pronto para iniciar', 'Monte seu algoritmo e clique em Executar ou use ⏭ Passo para testar linha a linha.');
+    }
+
+    function switchWorkspaceTab(tab) {
+      if (execStatus !== 'idle') return;
+      activeWorkspaceTab = tab;
+      activeScopeUid = null;
+      updateWorkspaceTabButtons();
+      renderPalette();
+      renderWorkspace();
+    }
+
+    function updateWorkspaceTabButtons() {
+      const mainBtn = document.getElementById('tabMainBtn');
+      const funcBtn = document.getElementById('tabFuncBtn');
+      mainBtn.className = 'ws-tab-btn' + (activeWorkspaceTab === 'main' ? ' active' : '');
+      funcBtn.className = 'ws-tab-btn' + (activeWorkspaceTab === 'func' ? ' active-func' : '');
+    }
+
+    function getActiveProgramList() {
+      return activeWorkspaceTab === 'func' ? routineProgram : mainProgram;
+    }
+
+    /**
+     * Reinicia o estado do robô e ambiente
+     */
+    function resetSimulationState(regenerateHoles = true) {
+      const level = LEVELS[currentLevelId];
+      const previousHoles = [...simState.holes];
+
+      simState = {
+        robot: {
+          ...level.start,
+          visualAngle: DIRECTIONS[level.start.dir].deg
+        },
+        crates: level.initialCrates.map(c => ({ ...c })),
+        carryingCrate: false,
+        boxesCollected: 0,
+        gateOpen: false,
+        holes: regenerateHoles ? generateRandomHoles(level) : previousHoles,
+        buttonPressed: false,
+        crashed: false
+      };
+
+      activeBlockUid = null;
+      inspectedTile = null;
+      updateVariableDisplay();
+      renderGrid();
+      updateOrientationLabel();
+    }
+
+    /**
+     * Gera buracos aleatórios válidos na ponte da Fase 3
+     * Garante que NUNCA existam 2 buracos seguidos e que a casa de pouso seja sempre segura
+     */
+    function generateRandomHoles(level) {
+      if (!level.dynamicHoles) return [];
+      // Ponte vai de x=1 (início) até x=7 (meta). Casas intermediárias: 2, 3, 4, 5, 6.
+      // Pares válidos sem adjacência e deixando pouso livre:
+      const validConfigurations = [
+        [2, 4],
+        [2, 5],
+        [3, 5],
+        [2, 6]
+      ];
+      const chosen = validConfigurations[Math.floor(Math.random() * validConfigurations.length)];
+      return chosen.map(x => ({ x, y: 1 }));
+    }
+
+    function updateVariableDisplay() {
+      const el = document.getElementById('varCaixasDisplay');
+      if (el) {
+        el.textContent = `caixas = ${simState.boxesCollected} / 2`;
+      }
+    }
+
+    /* ========================================================================
+       RENDERIZAÇÃO DO GRID 2D
+       ======================================================================== */
+    function renderGrid() {
+      const level = LEVELS[currentLevelId];
+      const gridEl = document.getElementById('warehouseGrid');
+      const rows = level.map.length;
+      const cols = level.map[0].length;
+
+      gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      gridEl.innerHTML = '';
+
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const char = level.map[y][x];
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+
+          const isHole = simState.holes.some(h => h.x === x && h.y === y);
+          const isInspected = inspectedTile && inspectedTile.x === x && inspectedTile.y === y;
+
+          if (char === '#') {
+            cell.classList.add('cell-wall');
+          } else if (char === ' ') {
+            cell.classList.add('cell-void');
+          } else if (isHole) {
+            cell.classList.add('cell-hole');
+          } else if (char === 'G') {
+            cell.classList.add('cell-floor', 'cell-goal');
+            const label = document.createElement('span');
+            label.className = 'cell-goal-label';
+            label.textContent = 'Meta';
+            cell.appendChild(label);
+          } else if (char === 'B') {
+            cell.classList.add('cell-floor', 'cell-button');
+            const btnIcon = document.createElement('div');
+            btnIcon.className = 'power-button-icon' + (simState.buttonPressed ? ' pressed' : '');
+            btnIcon.textContent = simState.buttonPressed ? '✓' : '⚡';
+            cell.appendChild(btnIcon);
+          } else if (char === 'D') {
+            cell.classList.add('cell-floor', simState.gateOpen ? 'cell-gate-open' : 'cell-gate-locked');
+            const gateIcon = document.createElement('span');
+            gateIcon.className = 'gate-icon';
+            gateIcon.textContent = simState.gateOpen ? '🔓' : '🔒';
+            gateIcon.title = simState.gateOpen ? 'Portão Aberto' : 'Portão Trancado (Exige caixas == 2)';
+            cell.appendChild(gateIcon);
+          } else {
+            cell.classList.add('cell-floor');
+          }
+
+          if (isInspected) {
+            cell.classList.add('cell-sensor-scan');
+          }
+
+          // Caixa no chão
+          const hasCrate = simState.crates.some(c => c.x === x && c.y === y);
+          if (hasCrate) {
+            const crate = document.createElement('div');
+            crate.className = 'crate-item';
+            crate.textContent = '📦';
+            cell.appendChild(crate);
+          }
+
+          // Robô LogiBot com ângulo cumulativo (evita giro invertido)
+          if (simState.robot.x === x && simState.robot.y === y) {
+            const robot = document.createElement('div');
+            robot.className = 'robot-entity' + (simState.crashed ? ' robot-crash' : '');
+            const deg = simState.robot.visualAngle;
+            robot.style.transform = `rotate(${deg}deg)`;
+
+            const arrow = document.createElement('div');
+            arrow.className = 'robot-direction-arrow';
+            robot.appendChild(arrow);
+
+            const visor = document.createElement('div');
+            visor.className = 'robot-visor';
+            visor.innerHTML = '<span class="robot-eye"></span><span class="robot-eye"></span>';
+            robot.appendChild(visor);
+
+            if (simState.carryingCrate && currentLevelId === 1) {
+              const miniCrate = document.createElement('div');
+              miniCrate.className = 'robot-carried-crate';
+              miniCrate.style.transform = `rotate(${-deg}deg)`;
+              miniCrate.textContent = '📦';
+              robot.appendChild(miniCrate);
+            }
+
+            cell.appendChild(robot);
+          }
+
+          gridEl.appendChild(cell);
+        }
+      }
+
+      renderLegend(level);
+    }
+
+    function renderLegend(level) {
+      const legendEl = document.getElementById('gridLegend');
+      let html = `
+        <div class="legend-item"><span class="legend-dot" style="background:#38bdf8;"></span> LogiBot (seta amarela = frente)</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#334155; border:1px solid #475569;"></span> Parede</div>
+      `;
+      if (level.id === 1) {
+        html += `<div class="legend-item"><span class="legend-dot" style="background:#d97706;"></span> Caixa</div>
+                 <div class="legend-item"><span class="legend-dot" style="background:#10b981;"></span> Meta</div>`;
+      } else if (level.id === 2) {
+        html += `<div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span> Botão de Energia</div>`;
+      } else if (level.id === 3) {
+        html += `<div class="legend-item"><span class="legend-dot" style="background:#020617; border:1px dashed #ef4444;"></span> Buraco</div>
+                 <div class="legend-item"><span class="legend-dot" style="background:#c084fc;"></span> Sensor Ativo</div>`;
+      } else if (level.id === 4) {
+        html += `<div class="legend-item"><span class="legend-dot" style="background:#d97706;"></span> Caixa (+1)</div>
+                 <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Portão (caixas==2)</div>`;
+      } else if (level.id === 5) {
+        html += `<div class="legend-item"><span class="legend-dot" style="background:#10b981;"></span> Meta Final</div>`;
+      }
+      legendEl.innerHTML = html;
+    }
+
+    function updateOrientationLabel() {
+      const dirInfo = DIRECTIONS[simState.robot.dir];
+      document.getElementById('robotOrientationLabel').textContent = `Direção: ${dirInfo.name}`;
+    }
+
+    /* ========================================================================
+       PALETA DE COMANDOS E EDIÇÃO DE BLOCOS
+       ======================================================================== */
+    function renderPalette() {
+      const level = LEVELS[currentLevelId];
+      const container = document.getElementById('paletteContainer');
+      container.innerHTML = '';
+
+      const groups = [
+        { key: 'move', title: 'Movimento' },
+        { key: 'action', title: 'Ações & Variáveis' },
+        { key: 'loop', title: 'Repetição' },
+        { key: 'cond', title: 'Decisão / Sensor' },
+        { key: 'func', title: 'Funções' }
+      ];
+
+      groups.forEach(group => {
+        const cmds = level.availableCommands
+          .map(id => COMMAND_DEFS[id])
+          .filter(cmd => {
+            if (cmd.category !== group.key) return false;
+            // Evita recursão infinita dentro de Minha_Rotina()
+            if (activeWorkspaceTab === 'func' && cmd.id === 'CALL_ROUTINE') return false;
+            return true;
+          });
+
+        if (cmds.length === 0) return;
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'palette-group';
+
+        const titleEl = document.createElement('div');
+        titleEl.className = 'palette-group-title';
+        titleEl.textContent = group.title;
+        groupDiv.appendChild(titleEl);
+
+        const listEl = document.createElement('div');
+        listEl.className = 'palette-list';
+
+        cmds.forEach(cmd => {
+          const btn = document.createElement('button');
+          btn.className = `cmd-btn bg-${cmd.category}`;
+          btn.disabled = execStatus !== 'idle';
+          btn.onclick = () => addCommandBlock(cmd.id);
+
+          const labelText = cmd.id === 'REPEAT' ? 'Repetir [ X ] vezes' : cmd.label;
+          btn.innerHTML = `
+            <span class="cmd-btn-left"><span>${cmd.icon}</span><span>${labelText}</span></span>
+            <span class="plus-tag">+ Add</span>
+          `;
+          listEl.appendChild(btn);
+        });
+
+        groupDiv.appendChild(listEl);
+        container.appendChild(groupDiv);
+      });
+
+      updateScopeBanner();
+    }
+
+    function countBlocksInList(list) {
+      let total = 0;
+      for (const block of list) {
+        total += 1;
+        if (block.children) {
+          total += countBlocksInList(block.children);
+        }
+      }
+      return total;
+    }
+
+    function countTotalBlocks() {
+      return countBlocksInList(mainProgram) + countBlocksInList(routineProgram);
+    }
+
+    function updateBlockCounter() {
+      const level = LEVELS[currentLevelId];
+      const count = countTotalBlocks();
+      const badge = document.getElementById('blockCounterBadge');
+      const textEl = document.getElementById('blockCountText');
+
+      if (level.maxBlocks !== null) {
+        textEl.textContent = `${count} / ${level.maxBlocks}`;
+        badge.classList.toggle('limit-warning', count > level.maxBlocks);
+      } else {
+        textEl.textContent = `${count}`;
+        badge.classList.remove('limit-warning');
+      }
+    }
+
+    function findBlockByUid(uid, list = getActiveProgramList()) {
+      for (const item of list) {
+        if (item.uid === uid) return item;
+        if (item.children) {
+          const found = findBlockByUid(uid, item.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    function setActiveScope(uid) {
+      if (execStatus !== 'idle') return;
+      activeScopeUid = uid;
+      updateScopeBanner();
+      renderWorkspace();
+    }
+
+    function updateScopeBanner() {
+      const scopeNameEl = document.getElementById('activeScopeName');
+      const resetBtn = document.getElementById('resetScopeBtn');
+      const baseLabel = activeWorkspaceTab === 'func' ? 'Minha_Rotina()' : 'Programa Principal';
+
+      if (!activeScopeUid) {
+        scopeNameEl.textContent = baseLabel;
+        resetBtn.style.display = 'none';
+      } else {
+        const target = findBlockByUid(activeScopeUid);
+        if (!target) {
+          activeScopeUid = null;
+          updateScopeBanner();
+          return;
+        }
+        const def = COMMAND_DEFS[target.type];
+        scopeNameEl.textContent = `Dentro de "${def.label}"`;
+        resetBtn.style.display = 'inline-block';
+      }
+    }
+
+    function addCommandBlock(type) {
+      if (execStatus !== 'idle') return;
+      const level = LEVELS[currentLevelId];
+      const currentCount = countTotalBlocks();
+
+      if (level.maxBlocks !== null && currentCount >= level.maxBlocks) {
+        setDiagnostic(
+          'error',
+          'Limite de blocos atingido!',
+          `Esta fase permite no máximo ${level.maxBlocks} blocos. Use o bloco "Repetir" para economizar instruções.`
+        );
+        return;
+      }
+
+      const def = COMMAND_DEFS[type];
+      const newBlock = {
+        uid: uidCounter++,
+        type: type
+      };
+
+      if (def.isContainer) {
+        newBlock.children = [];
+        if (type === 'REPEAT') {
+          newBlock.count = currentLevelId === 2 ? 8 : (currentLevelId === 3 ? 6 : 3);
+        }
+      }
+
+      const targetList = getActiveProgramList();
+      if (activeScopeUid) {
+        const containerBlock = findBlockByUid(activeScopeUid, targetList);
+        if (containerBlock && containerBlock.children) {
+          containerBlock.children.push(newBlock);
+        } else {
+          targetList.push(newBlock);
+        }
+      } else {
+        targetList.push(newBlock);
+      }
+
+      if (def.isContainer) {
+        activeScopeUid = newBlock.uid;
+      }
+
+      updateScopeBanner();
+      renderWorkspace();
+      renderPythonCode();
+      updateBlockCounter();
+    }
+
+    function removeBlock(uid, list = getActiveProgramList()) {
+      if (execStatus !== 'idle') return;
+      const idx = list.findIndex(b => b.uid === uid);
+      if (idx !== -1) {
+        list.splice(idx, 1);
+        if (activeScopeUid === uid || !findBlockByUid(activeScopeUid, getActiveProgramList())) {
+          activeScopeUid = null;
+        }
+        updateScopeBanner();
+        renderWorkspace();
+        renderPythonCode();
+        updateBlockCounter();
+        return true;
+      }
+      for (const item of list) {
+        if (item.children && removeBlock(uid, item.children)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function moveBlock(uid, direction, list = getActiveProgramList()) {
+      if (execStatus !== 'idle') return;
+      const idx = list.findIndex(b => b.uid === uid);
+      if (idx !== -1) {
+        const targetIdx = idx + direction;
+        if (targetIdx >= 0 && targetIdx < list.length) {
+          const temp = list[idx];
+          list[idx] = list[targetIdx];
+          list[targetIdx] = temp;
+          renderWorkspace();
+          renderPythonCode();
+        }
+        return true;
+      }
+      for (const item of list) {
+        if (item.children && moveBlock(uid, direction, item.children)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function updateRepeatCount(uid, value) {
+      const block = findBlockByUid(uid, getActiveProgramList());
+      if (block) {
+        block.count = Number(value);
+        renderPythonCode();
+      }
+    }
+
+    function clearCurrentTabAlgorithm() {
+      if (execStatus !== 'idle') return;
+      if (activeWorkspaceTab === 'func') {
+        routineProgram = [];
+      } else {
+        mainProgram = [];
+      }
+      activeScopeUid = null;
+      updateScopeBanner();
+      renderWorkspace();
+      renderPythonCode();
+      updateBlockCounter();
+      setDiagnostic('info', 'Aba limpa', 'Adicione novos comandos para testar uma solução.');
+    }
+
+    /* ========================================================================
+       RENDERIZAÇÃO DO WORKSPACE VISUAL
+       ======================================================================== */
+    function renderWorkspace() {
+      const area = document.getElementById('workspaceArea');
+      area.innerHTML = '';
+      const currentList = getActiveProgramList();
+
+      if (currentList.length === 0) {
+        const emptyTitle = activeWorkspaceTab === 'func'
+          ? 'Minha_Rotina() ainda está vazia'
+          : 'Nenhum comando adicionado ainda';
+        const emptyDesc = activeWorkspaceTab === 'func'
+          ? 'Adicione aqui os passos que formam um padrão repetitivo (ex.: subir 1 degrau).'
+          : 'Clique nos comandos na coluna à esquerda para montar o algoritmo do LogiBot.';
+
+        area.innerHTML = `
+          <div class="empty-workspace">
+            <span style="font-size: 1.7rem;">🧩</span>
+            <strong>${emptyTitle}</strong>
+            <span>${emptyDesc}</span>
+          </div>
+        `;
+        return;
+      }
+
+      let lineCounter = 1;
+      const locked = execStatus !== 'idle';
+
+      function createBlockElement(block, parentList) {
+        const def = COMMAND_DEFS[block.type];
+        const blockEl = document.createElement('div');
+        blockEl.className = `code-block bg-${def.category}`;
+        if (activeBlockUid === block.uid) {
+          blockEl.classList.add('executing');
+        }
+
+        const header = document.createElement('div');
+        header.className = 'code-block-header';
+
+        const labelWrap = document.createElement('div');
+        labelWrap.className = 'code-block-label';
+
+        const lineSpan = document.createElement('span');
+        lineSpan.className = 'line-number';
+        lineSpan.textContent = String(lineCounter++).padStart(2, '0');
+        labelWrap.appendChild(lineSpan);
+
+        const iconSpan = document.createElement('span');
+        iconSpan.textContent = def.icon;
+        labelWrap.appendChild(iconSpan);
+
+        if (block.type === 'REPEAT') {
+          const textBefore = document.createElement('span');
+          textBefore.textContent = 'Repetir';
+          labelWrap.appendChild(textBefore);
+
+          const select = document.createElement('select');
+          select.className = 'repeat-select';
+          select.disabled = locked;
+          for (let n = 2; n <= 10; n++) {
+            const opt = document.createElement('option');
+            opt.value = n;
+            opt.textContent = `${n}x`;
+            if (block.count === n) opt.selected = true;
+            select.appendChild(opt);
+          }
+          select.onchange = (e) => updateRepeatCount(block.uid, e.target.value);
+          labelWrap.appendChild(select);
+        } else {
+          const textSpan = document.createElement('span');
+          textSpan.textContent = def.label;
+          labelWrap.appendChild(textSpan);
+        }
+
+        header.appendChild(labelWrap);
+
+        const actions = document.createElement('div');
+        actions.className = 'block-actions';
+        const idxInParent = parentList.indexOf(block);
+
+        const upBtn = document.createElement('button');
+        upBtn.className = 'icon-btn';
+        upBtn.textContent = '↑';
+        upBtn.title = 'Mover para cima';
+        upBtn.disabled = locked || idxInParent === 0;
+        upBtn.onclick = () => moveBlock(block.uid, -1, parentList);
+
+        const downBtn = document.createElement('button');
+        downBtn.className = 'icon-btn';
+        downBtn.textContent = '↓';
+        downBtn.title = 'Mover para baixo';
+        downBtn.disabled = locked || idxInParent === parentList.length - 1;
+        downBtn.onclick = () => moveBlock(block.uid, 1, parentList);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'icon-btn delete';
+        delBtn.textContent = '✕';
+        delBtn.title = 'Excluir bloco';
+        delBtn.disabled = locked;
+        delBtn.onclick = () => removeBlock(block.uid, parentList);
+
+        actions.appendChild(upBtn);
+        actions.appendChild(downBtn);
+        actions.appendChild(delBtn);
+        header.appendChild(actions);
+
+        blockEl.appendChild(header);
+
+        if (def.isContainer) {
+          const nested = document.createElement('div');
+          nested.className = 'nested-container';
+
+          if (block.children.length === 0) {
+            const emptyHint = document.createElement('div');
+            emptyHint.style.fontSize = '0.74rem';
+            emptyHint.style.opacity = '0.8';
+            emptyHint.textContent = '(Vazio — adicione comandos internos)';
+            nested.appendChild(emptyHint);
+          } else {
+            block.children.forEach(child => {
+              nested.appendChild(createBlockElement(child, block.children));
+            });
+          }
+
+          if (!locked) {
+            const scopeBtn = document.createElement('button');
+            scopeBtn.className = 'nested-target-btn' + (activeScopeUid === block.uid ? ' selected-scope' : '');
+            scopeBtn.textContent = activeScopeUid === block.uid
+              ? '🎯 Novos blocos entrarão AQUI dentro'
+              : '+ Inserir comandos aqui dentro';
+            scopeBtn.onclick = () => setActiveScope(block.uid);
+            nested.appendChild(scopeBtn);
+          }
+
+          blockEl.appendChild(nested);
+        }
+
+        return blockEl;
+      }
+
+      currentList.forEach(block => {
+        area.appendChild(createBlockElement(block, currentList));
+      });
+
+      const hasContainer = currentList.some(b => COMMAND_DEFS[b.type].isContainer);
+      if (hasContainer && !locked) {
+        const rootBtn = document.createElement('button');
+        rootBtn.className = 'root-scope-btn' + (activeScopeUid === null ? ' selected-scope' : '');
+        rootBtn.textContent = activeScopeUid === null
+          ? '🎯 Novos blocos entrarão no final (fora dos laços)'
+          : '+ Inserir comandos FORA / abaixo dos blocos';
+        rootBtn.onclick = () => setActiveScope(null);
+        area.appendChild(rootBtn);
+      }
+    }
+
+    /* ========================================================================
+       TRADUTOR AO VIVO PARA CÓDIGO ESTILO PYTHON
+       ======================================================================== */
+    function renderPythonCode() {
+      const container = document.getElementById('pythonCodeView');
+      const level = LEVELS[currentLevelId];
+      const lines = [];
+
+      if (level.useVariables) {
+        lines.push({ uid: null, html: `<span class="tok-var">caixas</span> <span class="tok-op">=</span> <span class="tok-num">0</span>  <span class="tok-com"># variável inicial</span>` });
+        lines.push({ uid: null, html: `` });
+      }
+
+      if (level.useFunctions) {
+        lines.push({ uid: null, html: `<span class="tok-kw">def</span> <span class="tok-fn">minha_rotina</span>():` });
+        if (routineProgram.length === 0) {
+          lines.push({ uid: null, html: `    <span class="tok-kw">pass</span>  <span class="tok-com"># rotina vazia</span>` });
+        } else {
+          appendPythonLines(routineProgram, 1, lines);
+        }
+        lines.push({ uid: null, html: `` });
+        lines.push({ uid: null, html: `<span class="tok-com"># Programa Principal:</span>` });
+      }
+
+      if (mainProgram.length === 0) {
+        lines.push({ uid: null, html: `<span class="tok-com"># Adicione blocos para ver o código...</span>` });
+      } else {
+        appendPythonLines(mainProgram, 0, lines);
+      }
+
+      container.innerHTML = lines.map((line, index) => {
+        const isActive = line.uid !== null && line.uid === activeBlockUid;
+        return `<div class="code-line${isActive ? ' active-line' : ''}"><span class="code-ln">${index + 1}</span><span>${line.html}</span></div>`;
+      }).join('');
+    }
+
+    function appendPythonLines(list, indentLevel, outLines) {
+      const indent = '    '.repeat(indentLevel);
+
+      for (const block of list) {
+        if (block.type === 'REPEAT') {
+          const count = block.count || 2;
+          outLines.push({
+            uid: block.uid,
+            html: `${indent}<span class="tok-kw">for</span> i <span class="tok-kw">in</span> <span class="tok-fn">range</span>(<span class="tok-num">${count}</span>):`
+          });
+          if (block.children.length === 0) {
+            outLines.push({ uid: block.uid, html: `${indent}    <span class="tok-kw">pass</span>` });
+          } else {
+            appendPythonLines(block.children, indentLevel + 1, outLines);
+          }
+        } else if (block.type === 'IF_HOLE') {
+          outLines.push({
+            uid: block.uid,
+            html: `${indent}<span class="tok-kw">if</span> <span class="tok-fn">buraco_a_frente</span>():`
+          });
+          if (block.children.length === 0) {
+            outLines.push({ uid: block.uid, html: `${indent}    <span class="tok-kw">pass</span>` });
+          } else {
+            appendPythonLines(block.children, indentLevel + 1, outLines);
+          }
+        } else if (block.type === 'IF_BOXES_2') {
+          outLines.push({
+            uid: block.uid,
+            html: `${indent}<span class="tok-kw">if</span> <span class="tok-var">caixas</span> <span class="tok-op">==</span> <span class="tok-num">2</span>:`
+          });
+          if (block.children.length === 0) {
+            outLines.push({ uid: block.uid, html: `${indent}    <span class="tok-kw">pass</span>` });
+          } else {
+            appendPythonLines(block.children, indentLevel + 1, outLines);
+          }
+        } else {
+          const def = COMMAND_DEFS[block.type];
+          const extraComment = block.type === 'PICK_BOX' && LEVELS[currentLevelId].useVariables
+            ? `  <span class="tok-com"># caixas += 1</span>`
+            : '';
+          outLines.push({
+            uid: block.uid,
+            html: `${indent}<span class="tok-fn">${def.py}</span>${extraComment}`
+          });
+        }
+      }
+    }
+
+    /* ========================================================================
+       CONTROLES DE EXECUÇÃO: PLAY / PAUSE / PASSO A PASSO / VELOCIDADE
+       ======================================================================== */
+    function toggleSpeed() {
+      fastMode = !fastMode;
+      const btn = document.getElementById('speedToggleBtn');
+      const label = document.getElementById('speedLabel');
+      btn.classList.toggle('fast', fastMode);
+      label.textContent = fastMode ? '2x' : '1x';
+    }
+
+    function getStepDelay() {
+      return fastMode ? 220 : 480;
+    }
+
+    function updateControlButtonsUI() {
+      const playBtn = document.getElementById('playPauseBtn');
+      const clearBtn = document.getElementById('clearAllBtn');
+
+      if (execStatus === 'running') {
+        playBtn.innerHTML = '⏸ Pausar';
+        playBtn.classList.add('paused-state');
+      } else if (execStatus === 'paused') {
+        playBtn.innerHTML = '▶ Continuar';
+        playBtn.classList.remove('paused-state');
+      } else {
+        playBtn.innerHTML = '▶ Executar';
+        playBtn.classList.remove('paused-state');
+      }
+
+      clearBtn.disabled = execStatus !== 'idle';
+      renderPalette();
+      renderWorkspace();
+      renderPythonCode();
+    }
+
+    function togglePlayPause() {
+      if (execStatus === 'idle') {
+        startExecution(false);
+      } else if (execStatus === 'running') {
+        execStatus = 'paused';
+        setDiagnostic('info', 'Execução pausada', 'Clique em "Continuar" para retomar ou em "⏭ Passo" para avançar 1 instrução.');
+        updateControlButtonsUI();
+      } else if (execStatus === 'paused') {
+        execStatus = 'running';
+        updateControlButtonsUI();
+        if (pauseResolver) {
+          const resolve = pauseResolver;
+          pauseResolver = null;
+          resolve();
+        }
+      }
+    }
+
+    function stepExecution() {
+      if (execStatus === 'idle') {
+        // Inicia já pausado e executa exatamente o primeiro passo
+        startExecution(true);
+      } else if (execStatus === 'paused') {
+        stepOnceRequested = true;
+        if (pauseResolver) {
+          const resolve = pauseResolver;
+          pauseResolver = null;
+          resolve();
+        }
+      } else if (execStatus === 'running') {
+        // Se estava rodando contínuo, pausa para permitir avançar passo a passo
+        execStatus = 'paused';
+        updateControlButtonsUI();
+      }
+    }
+
+    function stopExecution() {
+      if (abortController) {
+        abortController.abort();
+        abortController = null;
+      }
+      if (pauseResolver) {
+        pauseResolver = null;
+      }
+      execStatus = 'idle';
+      stepOnceRequested = false;
+      activeBlockUid = null;
+      inspectedTile = null;
+      updateControlButtonsUI();
+    }
+
+    function stopAndReset() {
+      stopExecution();
+      resetSimulationState(true);
+      setDiagnostic('info', 'Cenário reiniciado', 'O robô voltou à posição inicial.');
+    }
+
+    async function waitNextTick(ms, signal) {
+      if (signal.aborted) throw new Error('ABORTED');
+
+      // Se estamos em modo pausado (ou terminamos um passo único), aguarda o clique do usuário
+      if (execStatus === 'paused' && !stepOnceRequested) {
+        await new Promise((resolve, reject) => {
+          pauseResolver = resolve;
+          signal.addEventListener('abort', () => {
+            pauseResolver = null;
+            reject(new Error('ABORTED'));
+          }, { once: true });
+        });
+      }
+
+      if (stepOnceRequested) {
+        stepOnceRequested = false;
+        // Executa este passo e volta a pausar logo em seguida
+        execStatus = 'paused';
+        updateControlButtonsUI();
+        await sleep(160, signal);
+        return;
+      }
+
+      await sleep(ms, signal);
+
+      // Caso o usuário tenha clicado em Pausar durante o sleep
+      if (execStatus === 'paused' && !stepOnceRequested) {
+        await new Promise((resolve, reject) => {
+          pauseResolver = resolve;
+          signal.addEventListener('abort', () => {
+            pauseResolver = null;
+            reject(new Error('ABORTED'));
+          }, { once: true });
+        });
+      }
+    }
+
+    function sleep(ms, signal) {
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(resolve, ms);
+        if (signal) {
+          signal.addEventListener('abort', () => {
+            clearTimeout(timer);
+            reject(new Error('ABORTED'));
+          }, { once: true });
+        }
+      });
+    }
+
+    function setDiagnostic(type, title, message) {
+      const box = document.getElementById('diagnosticBox');
+      const icon = document.getElementById('diagnosticIcon');
+      const titleEl = document.getElementById('diagnosticTitle');
+      const msgEl = document.getElementById('diagnosticMessage');
+
+      box.className = 'diagnostic-box';
+      if (type === 'error') {
+        box.classList.add('error');
+        icon.textContent = '🚨';
+      } else if (type === 'success') {
+        box.classList.add('success');
+        icon.textContent = '✅';
+      } else {
+        icon.textContent = '🤖';
+      }
+
+      titleEl.textContent = title;
+      msgEl.textContent = message;
+    }
+
+    async function startExecution(startInStepMode = false) {
+      if (mainProgram.length === 0) {
+        setDiagnostic('error', 'Programa Principal vazio!', 'Adicione blocos no Programa Principal antes de executar.');
+        return;
+      }
+
+      const level = LEVELS[currentLevelId];
+      if (level.maxBlocks !== null && countTotalBlocks() > level.maxBlocks) {
+        setDiagnostic('error', 'Limite de blocos excedido!', `Esta fase permite no máximo ${level.maxBlocks} blocos.`);
+        return;
+      }
+
+      resetSimulationState(true);
+      abortController = new AbortController();
+      const signal = abortController.signal;
+
+      execStatus = startInStepMode ? 'paused' : 'running';
+      stepOnceRequested = startInStepMode;
+      updateControlButtonsUI();
+
+      setDiagnostic('info', 'Iniciando execução...', 'Acompanhe os blocos e o código em Python sincronizados.');
+
+      try {
+        await executeBlockList(mainProgram, 'main', signal);
+
+        activeBlockUid = null;
+        inspectedTile = null;
+        renderGrid();
+        renderWorkspace();
+        renderPythonCode();
+
+        if (level.checkVictory(simState)) {
+          const stars = calculateStars(level, countTotalBlocks());
+          levelStars[currentLevelId] = Math.max(levelStars[currentLevelId] || 0, stars);
+          updateNavStars();
+          setDiagnostic('success', 'Missão Cumprida!', `Fase concluída com ${stars} estrela(s)!`);
+          showVictoryModal(level, stars);
+        } else {
+          setDiagnostic('error', 'Objetivo incompleto', getIncompleteObjectiveMessage());
+        }
+      } catch (err) {
+        if (err.message === 'ABORTED') {
+          // Interrompido pelo botão Resetar
+        } else if (err.isGameFailure) {
+          simState.crashed = true;
+          inspectedTile = null;
+          renderGrid();
+          setDiagnostic('error', err.title, err.message);
+        } else {
+          console.error(err);
+        }
+      } finally {
+        execStatus = 'idle';
+        stepOnceRequested = false;
+        pauseResolver = null;
+        updateControlButtonsUI();
+      }
+    }
+
+    function getIncompleteObjectiveMessage() {
+      if (currentLevelId === 1) {
+        if (simState.carryingCrate) return 'O robô pegou a caixa, mas parou antes de soltá-la na zona verde (Meta).';
+        return 'A caixa ainda não foi entregue na zona verde (Meta).';
+      }
+      if (currentLevelId === 2) {
+        return 'O robô parou antes de pressionar o botão de energia no final do corredor.';
+      }
+      if (currentLevelId === 3) {
+        return 'O robô parou antes de atravessar toda a ponte até a Meta verde.';
+      }
+      if (currentLevelId === 4) {
+        if (simState.boxesCollected < 2) return `Você coletou ${simState.boxesCollected} de 2 caixas necessárias para destrancar o portão.`;
+        if (!simState.gateOpen) return 'Você já tem 2 caixas, mas esqueceu de usar "Abrir portão" diante do bloqueio.';
+        return 'O portão foi aberto, mas o robô ainda não avançou até a Meta verde.';
+      }
+      if (currentLevelId === 5) {
+        return 'O robô ainda não chegou à Meta no topo da escada. Verifique os degraus da sua rotina.';
+      }
+      return 'O robô concluiu os comandos, mas não atingiu a Meta.';
+    }
+
+    /**
+     * Execução recursiva de blocos com suporte a Funções e Sensor Visual
+     */
+    async function executeBlockList(list, tabContext, signal, callDepth = 0) {
+      if (callDepth > 25) {
+        failStep('Recursão infinita!', 'A rotina foi chamada vezes demais sem parar.');
+      }
+
+      for (const block of list) {
+        if (signal.aborted) throw new Error('ABORTED');
+
+        // Se o bloco pertence à aba atual, destaca no workspace visual; sempre destaca no Python
+        activeBlockUid = block.uid;
+        inspectedTile = null;
+        renderGrid();
+        renderWorkspace();
+        renderPythonCode();
+
+        if (block.type === 'REPEAT') {
+          const times = block.count || 2;
+          setDiagnostic('info', `Laço Repetir (${times}x)`, `Iniciando ${times} repetições do bloco...`);
+          await waitNextTick(Math.floor(getStepDelay() * 0.65), signal);
+
+          for (let i = 1; i <= times; i++) {
+            setDiagnostic('info', `Repetição ${i} de ${times}`, 'Executando instruções internas...');
+            await executeBlockList(block.children, tabContext, signal, callDepth);
+          }
+        } else if (block.type === 'IF_HOLE') {
+          const dir = DIRECTIONS[simState.robot.dir];
+          const frontX = simState.robot.x + dir.dx;
+          const frontY = simState.robot.y + dir.dy;
+          const hasHoleAhead = simState.holes.some(h => h.x === frontX && h.y === frontY);
+
+          // Ativa o destaque visual roxo do sensor na casa inspecionada
+          inspectedTile = { x: frontX, y: frontY };
+          renderGrid();
+
+          setDiagnostic(
+            'info',
+            'Sensor de Piso Ativo',
+            hasHoleAhead
+              ? 'BURACO detectado à frente! Executando o bloco "Então"...'
+              : 'Caminho livre à frente (sem buraco). Ignorando bloco "Então".'
+          );
+          await waitNextTick(getStepDelay(), signal);
+
+          inspectedTile = null;
+          renderGrid();
+
+          if (hasHoleAhead && block.children.length > 0) {
+            await executeBlockList(block.children, tabContext, signal, callDepth);
+          }
+        } else if (block.type === 'IF_BOXES_2') {
+          const isReady = simState.boxesCollected === 2;
+          setDiagnostic(
+            'info',
+            `Verificando condição: caixas == 2`,
+            isReady
+              ? `Verdadeiro! caixas vale ${simState.boxesCollected}. Executando bloco "Então"...`
+              : `Falso! caixas vale ${simState.boxesCollected} (precisa ser 2).`
+          );
+          await waitNextTick(getStepDelay(), signal);
+
+          if (isReady && block.children.length > 0) {
+            await executeBlockList(block.children, tabContext, signal, callDepth);
+          }
+        } else if (block.type === 'CALL_ROUTINE') {
+          if (routineProgram.length === 0) {
+            failStep(
+              'Rotina vazia!',
+              'Você chamou "Executar Minha_Rotina()", mas ainda não adicionou blocos na aba "Definir Minha_Rotina()".'
+            );
+          }
+          setDiagnostic('info', 'Chamando Minha_Rotina()', 'Executando os blocos definidos dentro da função...');
+          await waitNextTick(Math.floor(getStepDelay() * 0.7), signal);
+          await executeBlockList(routineProgram, 'func', signal, callDepth + 1);
+        } else {
+          await executeSingleAction(block.type, signal);
+        }
+      }
+    }
+
+    function getCellAt(x, y) {
+      const level = LEVELS[currentLevelId];
+      if (y < 0 || y >= level.map.length || x < 0 || x >= level.map[0].length) {
+        return '#';
+      }
+      return level.map[y][x];
+    }
+
+    function failStep(title, message) {
+      const error = new Error(message);
+      error.isGameFailure = true;
+      error.title = title;
+      throw error;
+    }
+
+    async function executeSingleAction(type, signal) {
+      const dir = DIRECTIONS[simState.robot.dir];
+
+      switch (type) {
+        case 'MOVE_FORWARD': {
+          const nextX = simState.robot.x + dir.dx;
+          const nextY = simState.robot.y + dir.dy;
+          const tile = getCellAt(nextX, nextY);
+
+          if (tile === '#' || tile === ' ') {
+            failStep(
+              'Colisão com a parede!',
+              'O comando "Andar para frente" falhou porque havia uma parede ou borda no caminho.'
+            );
+          }
+
+          if (tile === 'D' && !simState.gateOpen) {
+            failStep(
+              'Portão Laser Trancado!',
+              'O robô bateu no portão trancado. Colete 2 caixas e use "Se caixas == 2 ➔ Abrir portão" antes de passar.'
+            );
+          }
+
+          simState.robot.x = nextX;
+          simState.robot.y = nextY;
+          renderGrid();
+
+          if (simState.holes.some(h => h.x === nextX && h.y === nextY)) {
+            failStep(
+              'Queda no buraco!',
+              'O robô andou para frente e caiu em um buraco! Use "Se houver buraco à frente ➔ Pular (salta buraco)".'
+            );
+          }
+
+          setDiagnostic('info', 'Andar para frente', 'LogiBot avançou 1 casa.');
+          await waitNextTick(getStepDelay(), signal);
+          break;
+        }
+
+        case 'TURN_RIGHT': {
+          simState.robot.dir = (simState.robot.dir + 1) % 4;
+          simState.robot.visualAngle += 90;
+          renderGrid();
+          updateOrientationLabel();
+          setDiagnostic('info', 'Virar à direita', `O robô girou 90° à direita (${DIRECTIONS[simState.robot.dir].name}).`);
+          await waitNextTick(getStepDelay(), signal);
+          break;
+        }
+
+        case 'TURN_LEFT': {
+          simState.robot.dir = (simState.robot.dir + 3) % 4;
+          simState.robot.visualAngle -= 90;
+          renderGrid();
+          updateOrientationLabel();
+          setDiagnostic('info', 'Virar à esquerda', `O robô girou 90° à esquerda (${DIRECTIONS[simState.robot.dir].name}).`);
+          await waitNextTick(getStepDelay(), signal);
+          break;
+        }
+
+        case 'JUMP': {
+          const midX = simState.robot.x + dir.dx;
+          const midY = simState.robot.y + dir.dy;
+          const landX = simState.robot.x + dir.dx * 2;
+          const landY = simState.robot.y + dir.dy * 2;
+
+          const midTile = getCellAt(midX, midY);
+          const landTile = getCellAt(landX, landY);
+
+          if (midTile === '#' || landTile === '#' || landTile === ' ') {
+            failStep(
+              'Salto fora dos limites!',
+              'O salto avança 2 casas e atingiria uma parede ou o fim da ponte.'
+            );
+          }
+
+          simState.robot.x = landX;
+          simState.robot.y = landY;
+          renderGrid();
+
+          if (simState.holes.some(h => h.x === landX && h.y === landY)) {
+            failStep(
+              'Queda após o salto!',
+              'O robô saltou 2 casas e aterrissou em outro buraco. Só pule quando houver um buraco exatamente à frente!'
+            );
+          }
+
+          setDiagnostic('info', 'Pular (salta buraco)', 'LogiBot saltou com segurança sobre o buraco!');
+          await waitNextTick(getStepDelay(), signal);
+          break;
+        }
+
+        case 'PICK_BOX': {
+          if (currentLevelId === 1 && simState.carryingCrate) {
+            failStep('Braços ocupados!', 'O robô já está segurando uma caixa.');
+          }
+
+          const crateIdx = simState.crates.findIndex(
+            c => c.x === simState.robot.x && c.y === simState.robot.y
+          );
+
+          if (crateIdx === -1) {
+            failStep('Nenhuma caixa aqui!', 'Não existe caixa neste quadrado para coletar.');
+          }
+
+          simState.crates.splice(crateIdx, 1);
+          simState.carryingCrate = true;
+          simState.boxesCollected += 1;
+          updateVariableDisplay();
+          renderGrid();
+
+          setDiagnostic(
+            'info',
+            'Pegar caixa',
+            LEVELS[currentLevelId].useVariables
+              ? `Caixa coletada! Variável atualizada: caixas = ${simState.boxesCollected}.`
+              : 'Caixa coletada com sucesso!'
+          );
+          await waitNextTick(getStepDelay(), signal);
+          break;
+        }
+
+        case 'DROP_BOX': {
+          if (!simState.carryingCrate) {
+            failStep('Nada para soltar!', 'O robô não está carregando nenhuma caixa.');
+          }
+
+          simState.carryingCrate = false;
+          simState.crates.push({ x: simState.robot.x, y: simState.robot.y });
+          renderGrid();
+          setDiagnostic('info', 'Soltar caixa', 'Caixa depositada no chão.');
+          await waitNextTick(getStepDelay(), signal);
+          break;
+        }
+
+        case 'PRESS_BUTTON': {
+          const tile = getCellAt(simState.robot.x, simState.robot.y);
+          if (tile !== 'B') {
+            failStep('Botão não encontrado!', 'Não há botão de energia neste quadrado.');
+          }
+
+          simState.buttonPressed = true;
+          renderGrid();
+          setDiagnostic('info', 'Pressionar botão', 'Botão de energia ativado!');
+          await waitNextTick(getStepDelay(), signal);
+          break;
+        }
+
+        case 'OPEN_GATE': {
+          const frontX = simState.robot.x + dir.dx;
+          const frontY = simState.robot.y + dir.dy;
+          const frontTile = getCellAt(frontX, frontY);
+          const hereTile = getCellAt(simState.robot.x, simState.robot.y);
+
+          if (frontTile !== 'D' && hereTile !== 'D') {
+            failStep('Nenhum portão à frente!', 'Aproxime-se do portão laser antes de usar "Abrir portão".');
+          }
+
+          if (simState.boxesCollected < 2) {
+            failStep(
+              'Acesso Negado pelo Portão!',
+              `O portão exige caixas == 2, mas no momento caixas vale ${simState.boxesCollected}.`
+            );
+          }
+
+          simState.gateOpen = true;
+          renderGrid();
+          setDiagnostic('info', 'Abrir portão', 'Condição satisfeita! O portão laser foi destrancado.');
+          await waitNextTick(getStepDelay(), signal);
+          break;
+        }
+      }
+    }
+
+    /* ========================================================================
+       SISTEMA DE EFICIÊNCIA (ESTRELAS) E MODAL DE VITÓRIA
+       ======================================================================== */
+    function calculateStars(level, usedBlocks) {
+      if (usedBlocks <= level.idealBlocks) return 3;
+      if (usedBlocks <= level.idealBlocks + 2) return 2;
+      return 1;
+    }
+
+    function updateNavStars() {
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById(`navStars${i}`);
+        if (el && levelStars[i]) {
+          el.textContent = '★'.repeat(levelStars[i]);
+        }
+      }
+    }
+
+    function showVictoryModal(level, stars) {
+      const used = countTotalBlocks();
+      document.getElementById('modalStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+
+      const effMessages = {
+        3: `3 Estrelas! Solução brilhante com apenas ${used} blocos (Meta ideal: ${level.idealBlocks}).`,
+        2: `2 Estrelas! Muito bem (${used} blocos usados). Tente usar ${level.idealBlocks} blocos para alcançar 3 estrelas!`,
+        1: `1 Estrela! Missão cumprida (${used} blocos). Dá para deixar o código ainda mais enxuto!`
+      };
+      document.getElementById('modalEfficiencyText').textContent = effMessages[stars];
+
+      document.getElementById('modalTitle').textContent = `${level.title} — Concluída!`;
+      document.getElementById('modalConceptTitle').textContent = level.lessonTitle;
+      document.getElementById('modalConceptDesc').textContent = level.lessonDesc;
+
+      const nextBtn = document.getElementById('nextLevelBtn');
+      if (level.id < 5) {
+        nextBtn.textContent = `Ir para Fase ${level.id + 1} ➔`;
+      } else {
+        nextBtn.textContent = '🎉 Voltar à Fase 1';
+      }
+
+      document.getElementById('victoryModal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('victoryModal').classList.remove('open');
+    }
+
+    function goToNextLevel() {
+      closeModal();
+      selectLevel(currentLevelId < 5 ? currentLevelId + 1 : 1);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
